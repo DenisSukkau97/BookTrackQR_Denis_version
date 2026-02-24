@@ -9,7 +9,7 @@ from PyQt6.QtWidgets import QMainWindow, QStackedWidget
 
 from CentralWidget import CentralWidget
 from Schuelerverwaltung import SchuelerverwaltungWidget
-from Rueckgabe import RueckgabeDialog  # Ahmet: Import für das Rückgabe-Widget
+from Rueckgabe import RueckgabeWidget
 
 
 class MainWindow(QMainWindow):
@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
         # 2. Bildschirme laden
         self.main_menu_widget = CentralWidget()
         self.schueler_widget = SchuelerverwaltungWidget()
-        self.rueckgabe_widget = RueckgabeDialog()  # Mustafa: Instanz für Rückgabe
+        self.rueckgabe_widget = RueckgabeWidget()  # Mustafa: Instanz für Rückgabe
 
         # 3. Bildschirme zum Stapel hinzufügen
         self.stacked_widget.addWidget(self.main_menu_widget)  # Index 0

@@ -11,7 +11,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
 
-class RueckgabeDialog(QDialog):
+class RueckgabeWidget(QDialog):
     """
     Dialog-Fenster zum Scannen von Büchern bw. QR-Code.
     Enthält die Validierungslogik für Pflichtfelder (Klasse).
