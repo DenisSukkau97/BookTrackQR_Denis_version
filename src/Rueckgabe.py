@@ -20,7 +20,8 @@ class RueckgabeDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Rückgabe")
-        self.setFixedSize(400, 300)
+        # Ich habe die Größe auf 800x600 angepasst, damit es zum Rest passt
+        self.setMinimumSize(800, 600)
         self.setStyleSheet("background-color: white;")
 
         main_layout = QVBoxLayout()
@@ -39,28 +40,20 @@ class RueckgabeDialog(QDialog):
         header_layout.addWidget(title_label)
 
         logo_label = QLabel()
+        # Pfad zum Logo
         logo_path = os.path.join(os.path.dirname(__file__), "..", "pic", "technikerschule_logo.png")
         pixmap = QPixmap(logo_path)
         if not pixmap.isNull():
             logo_label.setPixmap(
                 pixmap.scaled(200, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-        else:
-            logo_label.setText("Logo nicht gefunden")
         logo_label.setFixedWidth(200)
-        logo_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
-        logo_label.setStyleSheet("background: transparent;")
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         header_layout.addWidget(logo_label)
 
         main_layout.addLayout(header_layout)
-        main_layout.addSpacing(20)
+        main_layout.addSpacing(30)
 
-        # Breadcrumb
-        back_label = QLabel("Startseite > Rückgabe")
-        back_label.setStyleSheet(
-            "color: #666666; font-style: italic; margin-left: 10px; margin-bottom: 10px; background: transparent;")
-        main_layout.addWidget(back_label)
-
-        # Kamera-Platzhalter (grau wie Screenshot)
+        # Kamera-Bereich (Platzhalter)
         kamera_widget = QWidget()
         kamera_widget.setStyleSheet("background-color: #E0E0E0; border: 2px dashed #CCCCCC; border-radius: 15px;")
         kamera_widget.setFixedHeight(350)
@@ -77,8 +70,8 @@ class RueckgabeDialog(QDialog):
         main_layout.addSpacing(30)
 
         # Zurück-Button (rosa wie Screenshot)
-        zurueck_btn = QPushButton("← Zurück")
-        zurueck_btn.setStyleSheet("""
+        self.zurueck_btn = QPushButton("← Zurück")
+        self.zurueck_btn.setStyleSheet("""
              QPushButton {
                  background-color: #F8BBD9; 
                  color: #333333;
@@ -92,9 +85,9 @@ class RueckgabeDialog(QDialog):
                  background-color: #F48FB1;
              }
          """)
-        zurueck_btn.clicked.connect(self.reject)
-        main_layout.addWidget(zurueck_btn, alignment=Qt.AlignmentFlag.AlignCenter)
 
-        main_layout.setContentsMargins(50, 30, 50, 50)
+        # Verbindung für lokale Funktion und MainWindow-Wechsel
+        self.zurueck_btn.clicked.connect(self.reject)
+        main_layout.addWidget(self.zurueck_btn, alignment=Qt.AlignmentFlag.AlignCenter)
+
         self.setLayout(main_layout)
-
