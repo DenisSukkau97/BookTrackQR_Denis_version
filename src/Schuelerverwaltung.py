@@ -1,9 +1,9 @@
 # ------------------------------------------------------------------------------
 # Projekt: BooktrackQR
-# Modul: SchuelerverwaltungWidget (GUI Design & Validierungs-Logik)
-# Stand: GUI mit TableWidget, Validierungs-Dialog und Zurück-Button
+# Modul: SchuelerverwaltungWidget (GUI Design & Logik)
+# Autoren: Mustafa Demiral, Ahmet Toplar
+# Stand: Finales Design mit Kommentaren und Validierung
 # ------------------------------------------------------------------------------
-
 import os
 from PyQt6.QtWidgets import (QWidget, QPushButton, QVBoxLayout,
                              QLabel, QHBoxLayout, QTableWidget, QTableWidgetItem,
@@ -11,64 +11,108 @@ from PyQt6.QtWidgets import (QWidget, QPushButton, QVBoxLayout,
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
-
-class StudentDialog(QDialog):
-    """
-    Dialog-Fenster zum Anlegen oder Bearbeiten eines Schülers.
-    Enthält die Validierungslogik für Pflichtfelder (Klasse).
-    """
-
+#Ahmet
+class DeleteConfirmDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Neuer Schüler")
-        self.setFixedSize(400, 300)
-        self.setStyleSheet("background-color: white;")
+        self.setWindowTitle("Löschen bestätigen")
+        self.setFixedSize(350, 180)
+        self.setStyleSheet("background-color: #FFFFFF;")
 
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(20, 20, 20, 20)
 
-        # Formular Layout
+        self.label = QLabel("⚠️ Möchten Sie diesen Schüler wirklich\nunwiderruflich löschen?")
+        self.label.setFont(QFont("Open Sans", 11, QFont.Weight.Bold))
+        self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.label.setStyleSheet("color: #333333; margin-bottom: 10px;")
+        layout.addWidget(self.label)
+
+        btn_layout = QHBoxLayout()
+        self.btn_no = QPushButton("Abbrechen")
+        self.btn_yes = QPushButton("Löschen")
+
+        style_yes = """
+            QPushButton { background-color: #D32F2F; color: white; padding: 8px; border: 3px solid #D32F2F; border-radius: 6px; font-weight: bold; }
+            QPushButton:hover { border: 3px solid #333333; }
+            QPushButton:pressed { background-color: #444444; border: 3px solid #444444; }
+        """
+        style_no = """
+            QPushButton { background-color: #E0E0E0; color: #333333; padding: 8px; border: 3px solid #E0E0E0; border-radius: 6px; font-weight: bold; }
+            QPushButton:hover { border: 3px solid #333333; }
+            QPushButton:pressed { background-color: #444444; border: 3px solid #444444; color: white; }
+        """
+        self.btn_yes.setStyleSheet(style_yes)
+        self.btn_no.setStyleSheet(style_no)
+
+        self.btn_yes.clicked.connect(self.accept)
+        self.btn_no.clicked.connect(self.reject)
+
+        btn_layout.addWidget(self.btn_no)
+        btn_layout.addWidget(self.btn_yes)
+        layout.addLayout(btn_layout)
+
+#Mustafa
+class StudentDialog(QDialog):
+    def __init__(self, parent=None, student_data=None):
+        super().__init__(parent)
+        self.setWindowTitle("Neuer Schüler" if not student_data else "Schüler bearbeiten")
+        self.setFixedSize(400, 320)
+        self.setStyleSheet("""
+            QDialog { background-color: #FFFFFF; }
+            QLabel { color: #333333; font-weight: bold; }
+            QLineEdit, QComboBox {
+                background-color: #FFFFFF; border: 1px solid #CCCCCC; border-radius: 4px; padding: 5px; color: #333333; font-size: 14px;
+            }
+            QLineEdit:focus, QComboBox:focus { border: 1px solid #F1BD4D; }
+        """)
+
+        layout = QVBoxLayout(self)
         form_layout = QFormLayout()
+        form_layout.setSpacing(15)
 
         self.input_vorname = QLineEdit()
-        self.input_vorname.setPlaceholderText("Vorname")
+        self.input_vorname.setPlaceholderText("Vorname eingeben")
         self.input_nachname = QLineEdit()
-        self.input_nachname.setPlaceholderText("Nachname")
-
-        # Klassen-Dropdown
+        self.input_nachname.setPlaceholderText("Nachname eingeben")
         self.combo_klasse = QComboBox()
-        self.combo_klasse.addItems(["Bitte wählen...", "10A", "10B", "11A", "11B"])
+        self.combo_klasse.addItems(["Bitte wählen...", "10A", "10B", "11A", "11B", "FSWI2"])
 
-        # Fehler-Label (Standardmäßig versteckt)
-        self.error_label = QLabel("Bitte eine Klasse auswählen.")
-        self.error_label.setStyleSheet("color: #D32F2F; font-size: 12px; font-style: italic;")
+        self.error_label = QLabel("Bitte alle markierten Pflichtfelder (*) ausfüllen.")
+        self.error_label.setStyleSheet("color: #D32F2F; font-size: 12px; font-style: italic; font-weight: normal;")
         self.error_label.hide()
 
-        # Felder zum Formular hinzufügen
-        form_layout.addRow(QLabel("Vorname:"), self.input_vorname)
-        form_layout.addRow(QLabel("Nachname:"), self.input_nachname)
+#Ahmet
+        if student_data:
+            self.input_nachname.setText(student_data[1])
+            self.input_vorname.setText(student_data[2])
+            self.combo_klasse.setCurrentText(student_data[3])
+
+        form_layout.addRow(QLabel("Vorname*:"), self.input_vorname)
+        form_layout.addRow(QLabel("Nachname*:"), self.input_nachname)
         form_layout.addRow(QLabel("Klasse*:"), self.combo_klasse)
 
         layout.addLayout(form_layout)
-        layout.addWidget(self.error_label)  # Unter das Dropdown setzen
+        layout.addWidget(self.error_label)
         layout.addStretch()
 
-        # Buttons
         btn_layout = QHBoxLayout()
         self.btn_cancel = QPushButton("Abbrechen")
         self.btn_save = QPushButton("Speichern")
 
+        self.btn_cancel.setStyleSheet("""
+            QPushButton { background-color: #E0E0E0; color: #333333; padding: 7px 17px; border: 3px solid #E0E0E0; border-radius: 4px; font-weight: bold; }
+            QPushButton:hover { border: 3px solid #333333; }
+            QPushButton:pressed { background-color: #444444; border: 3px solid #444444; color: white; }
+        """)
+        self.btn_save.setStyleSheet("""
+            QPushButton { background-color: #F1BD4D; color: white; padding: 7px 17px; border: 3px solid #F1BD4D; border-radius: 4px; font-weight: bold; }
+            QPushButton:hover { border: 3px solid #333333; }
+            QPushButton:pressed { background-color: #444444; border: 3px solid #444444; }
+        """)
+
         self.btn_cancel.clicked.connect(self.reject)
         self.btn_save.clicked.connect(self.validate_and_save)
-
-        # Styling der Buttons im Modal
-        self.btn_save.setStyleSheet("""
-            QPushButton { background-color: #F1BD4D; border: none; padding: 8px; border-radius: 4px; font-weight: bold; }
-            QPushButton:hover { background-color: #D9A840; }
-        """)
-        self.btn_cancel.setStyleSheet("""
-            QPushButton { background-color: #E0E0E0; border: none; padding: 8px; border-radius: 4px; }
-            QPushButton:hover { background-color: #CCCCCC; }
-        """)
 
         btn_layout.addStretch()
         btn_layout.addWidget(self.btn_cancel)
@@ -76,34 +120,32 @@ class StudentDialog(QDialog):
         layout.addLayout(btn_layout)
 
     def validate_and_save(self):
-        """Prüft, ob die Klasse ausgewählt wurde (Typischer Fehlerfall)"""
-        if self.combo_klasse.currentText() == "Bitte wählen...":
-            self.combo_klasse.setStyleSheet("border: 2px solid #D32F2F; border-radius: 3px; padding: 2px;")
+        v, n, k = self.input_vorname.text().strip(), self.input_nachname.text().strip(), self.combo_klasse.currentText()
+        self.input_vorname.setStyleSheet(""); self.input_nachname.setStyleSheet(""); self.combo_klasse.setStyleSheet("")
+        if not v or not n or k == "Bitte wählen...":
+            if not v: self.input_vorname.setStyleSheet("border: 2px solid #D32F2F;")
+            if not n: self.input_nachname.setStyleSheet("border: 2px solid #D32F2F;")
+            if k == "Bitte wählen...": self.combo_klasse.setStyleSheet("border: 2px solid #D32F2F;")
             self.error_label.show()
         else:
-            self.combo_klasse.setStyleSheet("")
-            self.error_label.hide()
             self.accept()
 
-
+#Mustafa
 class SchuelerverwaltungWidget(QWidget):
     def __init__(self, parent=None):
         super(SchuelerverwaltungWidget, self).__init__(parent)
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
-        self.setStyleSheet("background-color: white;")
+        self.setStyleSheet("background-color: #FFFFFF;")
 
         main_layout = QVBoxLayout()
 
-        # --- HEADER BEREICH ---
+        # Header mit Logo und Titel
         header_layout = QHBoxLayout()
-        dummy_left = QWidget()
-        dummy_left.setFixedWidth(200)
-        dummy_left.setStyleSheet("background: transparent;")
-        header_layout.addWidget(dummy_left)
+        dummy_left = QWidget(); dummy_left.setFixedWidth(200); header_layout.addWidget(dummy_left)
 
         title_label = QLabel("BooktrackQR")
         title_label.setFont(QFont("Open Sans", 50, QFont.Weight.Bold))
-        title_label.setStyleSheet("color: #333333; background-color: transparent; border: none;")
+        title_label.setStyleSheet("color: #333333; background: transparent; border: none;")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(title_label)
 
@@ -111,121 +153,145 @@ class SchuelerverwaltungWidget(QWidget):
         logo_path = self.get_image_path("technikerschule_logo.png")
         pixmap = QPixmap(logo_path)
         if not pixmap.isNull():
-            logo_label.setPixmap(
-                pixmap.scaled(200, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-        logo_label.setFixedWidth(200)
-        logo_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
+            logo_label.setPixmap(pixmap.scaled(200, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        logo_label.setFixedWidth(200); logo_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         header_layout.addWidget(logo_label)
 
         main_layout.addLayout(header_layout)
         main_layout.addSpacing(20)
 
-        # Breadcrumb Navigation
         self.back_label = QLabel("Startseite > Hauptmenü > Schülerverwaltung")
         self.back_label.setStyleSheet("color: #666666; font-style: italic; margin-left: 10px; margin-bottom: 10px;")
         main_layout.addWidget(self.back_label)
 
-        # Seiten-Titel
         page_title = QLabel("Schülerverwaltung")
         page_title.setFont(QFont("Open Sans", 24, QFont.Weight.Bold))
         page_title.setStyleSheet("color: #F1BD4D; margin-left: 10px;")
         main_layout.addWidget(page_title)
 
-        # --- ACTION BAR ---
+        # Aktionsbereich (Suche & Filter)
         action_layout = QHBoxLayout()
-        action_layout.setContentsMargins(10, 10, 10, 10)
+        action_layout.setContentsMargins(10, 15, 10, 20)
+        action_layout.setSpacing(20)
 
         self.search_input = QLineEdit()
-        self.search_input.setPlaceholderText("🔍 Suche nach Name...")
-        self.search_input.setFixedWidth(300)
-        self.search_input.setStyleSheet("padding: 8px; border: 1px solid #CCC; border-radius: 4px;")
+        self.search_input.setPlaceholderText("🔍 Suche nach Name oder ID...")
+        self.search_input.setFixedWidth(350)
+        self.search_input.setStyleSheet("padding: 10px; border: 1px solid #CCCCCC; border-radius: 6px; background-color: #FFFFFF; color: #333333; font-size: 14px;")
         action_layout.addWidget(self.search_input)
 
         self.filter_combo = QComboBox()
-        self.filter_combo.addItems(["Filter: Alle Klassen", "10A", "10B", "11A", "11B"])
-        self.filter_combo.setStyleSheet("padding: 8px; border: 1px solid #CCC; border-radius: 4px;")
+        self.filter_combo.addItems(["Filter: Alle Klassen", "10A", "10B", "11A", "11B", "FSWI2"])
+        self.filter_combo.setFixedWidth(200)
+        self.filter_combo.setStyleSheet("padding: 10px; border: 1px solid #CCCCCC; border-radius: 6px; background-color: #FFFFFF; color: #333333; font-size: 14px;")
         action_layout.addWidget(self.filter_combo)
 
         action_layout.addStretch()
 
-        btn_import = QPushButton("📤 CSV Importieren")
-        btn_import.setStyleSheet("padding: 8px 15px; border: 1px solid #CCC; border-radius: 4px; background: white;")
-        action_layout.addWidget(btn_import)
-
         btn_add = QPushButton("➕ Schüler hinzufügen")
         btn_add.setStyleSheet("""
-            QPushButton { background-color: #F1BD4D; color: white; padding: 8px 15px; border: none; border-radius: 4px; font-weight: bold;}
-            QPushButton:hover { background-color: #D9A840; }
+            QPushButton { background-color: #F1BD4D; color: white; padding: 7px 17px; border: 3px solid #F1BD4D; border-radius: 6px; font-weight: bold; font-size: 14px; }
+            QPushButton:hover { border: 3px solid #333333; }
+            QPushButton:pressed { background-color: #444444; border: 3px solid #444444; }
         """)
         btn_add.clicked.connect(self.open_student_dialog)
         action_layout.addWidget(btn_add)
 
         main_layout.addLayout(action_layout)
 
-        # --- TABELLE ---
+#Mustafa
         self.table = QTableWidget(0, 5)
         self.table.setHorizontalHeaderLabels(["ID", "Nachname", "Vorname", "Klasse", "Aktionen"])
-        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        self.table.verticalHeader().setDefaultSectionSize(50)
         self.table.setAlternatingRowColors(True)
+        self.table.setShowGrid(True)
         self.table.setStyleSheet("""
-            QTableWidget { background-color: white; border: 1px solid #E0E0E0; }
-            QHeaderView::section { background-color: #F5F5F5; font-weight: bold; border: 1px solid #E0E0E0; padding: 4px; }
-            QTableWidget::item { padding: 5px; }
+            QTableWidget { 
+                background-color: #FFFFFF; alternate-background-color: #F9F9F9; border: 1px solid #E0E0E0; 
+                border-radius: 4px; gridline-color: #EDEDED; font-size: 14px; color: #333333; 
+            }
+            QHeaderView::section { 
+                background-color: #F0F0F0; color: #000000; font-weight: bold; 
+                border: none; border-bottom: 2px solid #CCCCCC; padding: 10px 5px; 
+            }
         """)
+        self.table.verticalHeader().setVisible(False)
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed); self.table.setColumnWidth(0, 80)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch); header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed); self.table.setColumnWidth(3, 90)
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed); self.table.setColumnWidth(4, 120)
         main_layout.addWidget(self.table)
 
-        self.load_dummy_data()
+#Ahmet
+        self.dummy_students = [("101", "Müller", "Max", "10A"), ("102", "Schmidt", "Lisa", "10A")]
+        for i in range(103, 130): self.dummy_students.append((str(i), f"Mustermann{i}", f"Test{i}", "10A" if i%2==0 else "11B"))
 
-        # --- NEU: FOOTER BEREICH (ZURÜCK BUTTON) ---
+        self.load_table_data(self.dummy_students)
+        self.search_input.textChanged.connect(self.filter_table)
+        self.filter_combo.currentTextChanged.connect(self.filter_table)
+
         footer_layout = QHBoxLayout()
-        footer_layout.addStretch()  # Drückt den Button ganz nach rechts
-
+        footer_layout.addStretch()
         self.btn_back = QPushButton("⬅ Zurück zum Hauptmenü")
-        self.btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
         self.btn_back.setStyleSheet("""
-            QPushButton {
-                background-color: #E0E0E0;
-                color: #333333;
-                padding: 10px 20px;
-                border: none;
-                border-radius: 6px;
-                font-weight: bold;
-                font-size: 14px;
-            }
-            QPushButton:hover { background-color: #CCCCCC; }
+            QPushButton { background-color: #F1BD4D; color: white; padding: 7px 17px; border: 3px solid #F1BD4D; border-radius: 6px; font-weight: bold; font-size: 12px; }
+            QPushButton:hover { border: 3px solid #333333; }
+            QPushButton:pressed { background-color: #444444; border: 3px solid #444444; }
         """)
         footer_layout.addWidget(self.btn_back)
-
-        main_layout.addSpacing(10)  # Etwas Abstand zwischen Tabelle und Button
         main_layout.addLayout(footer_layout)
+        main_layout.setContentsMargins(50, 30, 50, 50); self.setLayout(main_layout)
 
-        main_layout.setContentsMargins(50, 30, 50, 50)
-        self.setLayout(main_layout)
+    def get_image_path(self, filename): return os.path.join(os.path.dirname(__file__), "..", "pic", filename)
 
-    def get_image_path(self, filename):
-        base_dir = os.path.dirname(__file__)
-        return os.path.join(base_dir, "..", "pic", filename)
-
-    def open_student_dialog(self):
-        dialog = StudentDialog(self)
-        if dialog.exec() == QDialog.DialogCode.Accepted:
-            print(
-                f"Schüler {dialog.input_vorname.text()} {dialog.input_nachname.text()} für Klasse {dialog.combo_klasse.currentText()} gespeichert!")
-
-    def load_dummy_data(self):
-        dummy_students = [
-            ("101", "Müller", "Max", "10A"),
-            ("102", "Schmidt", "Lisa", "10A"),
-            ("103", "Weber", "Tom", "10B"),
-        ]
-
-        self.table.setRowCount(len(dummy_students))
-        for row_idx, student in enumerate(dummy_students):
-            for col_idx, data in enumerate(student):
-                item = QTableWidgetItem(data)
+    def load_table_data(self, data_list):
+        self.table.setRowCount(len(data_list))
+        for row, student in enumerate(data_list):
+            for col in range(4):
+                item = QTableWidgetItem(student[col])
                 item.setFlags(item.flags() ^ Qt.ItemFlag.ItemIsEditable)
-                self.table.setItem(row_idx, col_idx, item)
+                if col in [0, 3]: item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table.setItem(row, col, item)
 
-            action_item = QTableWidgetItem("✏️ Bearbeiten | 🗑️ Löschen")
-            action_item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.table.setItem(row_idx, 4, action_item)
+            action_widget = QWidget()
+            action_layout = QHBoxLayout(action_widget); action_layout.setContentsMargins(5, 0, 5, 0); action_layout.setSpacing(10); action_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            btn_edit = QPushButton("✏️"); btn_edit.setFixedSize(40, 40)
+            btn_edit.setStyleSheet("QPushButton { background: transparent; border: none; font-size: 18px; } QPushButton:hover { background-color: #E0E0E0; border-radius: 6px; }")
+            btn_edit.clicked.connect(lambda ch, sid=student[0]: self.edit_student(sid))
+
+            btn_delete = QPushButton("🗑️"); btn_delete.setFixedSize(40, 40)
+            btn_delete.setStyleSheet("QPushButton { background: transparent; border: none; font-size: 18px; } QPushButton:hover { background-color: #FFCDD2; border-radius: 6px; }")
+            btn_delete.clicked.connect(lambda ch, sid=student[0]: self.delete_student(sid))
+
+            action_layout.addWidget(btn_edit); action_layout.addWidget(btn_delete)
+            self.table.setCellWidget(row, 4, action_widget)
+
+#Mustafa
+    def open_student_dialog(self):
+        d = StudentDialog(self)
+        if d.exec() == QDialog.DialogCode.Accepted:
+            new_id = str(max([int(s[0]) for s in self.dummy_students]) + 1) if self.dummy_students else "101"
+            self.dummy_students.append((new_id, d.input_nachname.text(), d.input_vorname.text(), d.combo_klasse.currentText()))
+            self.filter_table()
+
+    def edit_student(self, sid):
+        for i, s in enumerate(self.dummy_students):
+            if s[0] == sid:
+                d = StudentDialog(self, student_data=s)
+                if d.exec() == QDialog.DialogCode.Accepted:
+                    self.dummy_students[i] = (sid, d.input_nachname.text(), d.input_vorname.text(), d.combo_klasse.currentText()); self.filter_table()
+                break
+
+    def delete_student(self, sid):
+        confirm = DeleteConfirmDialog(self)
+        if confirm.exec() == QDialog.DialogCode.Accepted:
+            self.dummy_students = [s for s in self.dummy_students if s[0] != sid]
+            self.filter_table()
+
+# Ahmet
+    def filter_table(self):
+        txt, cls = self.search_input.text().lower(), self.filter_combo.currentText()
+        filtered = [s for s in self.dummy_students if (txt in s[0].lower() or txt in s[1].lower() or txt in s[2].lower()) and (cls == "Filter: Alle Klassen" or cls == s[3])]
+        self.load_table_data(filtered)
