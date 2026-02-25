@@ -2,7 +2,7 @@
 # Projekt: BooktrackQR
 # Modul: CentralWidget (GUI Design)
 # Autoren: Daniel Popp, Mustafa Demiral
-# Stand: GUI ohne Logik
+# Stand: GUI mit Original-Farben und korrigierten Variablen
 # ------------------------------------------------------------------------------
 
 import os
@@ -16,41 +16,32 @@ class CentralWidget(QWidget):
     def __init__(self, parent=None):
         super(CentralWidget, self).__init__(parent)
 
-        # Daniel: Grundlegendes Setup und Design
-        # WICHTIG: Damit der weiße Hintergrund gezeichnet wird!
         self.setAttribute(Qt.WidgetAttribute.WA_StyledBackground, True)
+        self.setStyleSheet("background-color: white;")
 
-        # Hauptlayout (Vertikal)
         main_layout = QVBoxLayout()
 
         # --- HEADER BEREICH ---
         header_layout = QHBoxLayout()
 
-        # 1. Unsichtbares Gegengewicht (Links) - Feste Breite für Zentrierung
         dummy_left = QWidget()
         dummy_left.setFixedWidth(200)
         dummy_left.setStyleSheet("background: transparent;")
         header_layout.addWidget(dummy_left)
 
-        # Mustafa: Header Elemente (Titel & Logo)
-        # 2. Titel (Mitte)
         title_label = QLabel("BooktrackQR")
-        title_label.setFont(QFont("Open Sans", 50, QFont.Weight.Bold))  # Open Sans wie das Schullogo
+        title_label.setFont(QFont("Open Sans", 50, QFont.Weight.Bold))
         title_label.setStyleSheet("color: #333333; background-color: transparent; border: none;")
         title_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         header_layout.addWidget(title_label)
 
-        # 3. Schullogo (Rechts)
         logo_label = QLabel()
-        # Pfad dynamisch ermitteln (verhindert Fehler auf Mac/Windows)
         logo_path = self.get_image_path("technikerschule_logo.png")
         pixmap = QPixmap(logo_path)
 
         if not pixmap.isNull():
             logo_label.setPixmap(
                 pixmap.scaled(200, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-        else:
-            logo_label.setText("Logo nicht gefunden")
 
         logo_label.setFixedWidth(200)
         logo_label.setAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
@@ -60,7 +51,7 @@ class CentralWidget(QWidget):
         main_layout.addLayout(header_layout)
         main_layout.addSpacing(20)
 
-        # Daniel: Breadcrumb Navigation
+        # Breadcrumb Navigation
         self.back_label = QLabel("Startseite > Hauptmenü")
         self.back_label.setStyleSheet(
             "color: #666666; font-style: italic; margin-left: 10px; margin-bottom: 10px; background: transparent;")
@@ -70,62 +61,41 @@ class CentralWidget(QWidget):
         grid = QGridLayout()
         grid.setSpacing(25)
 
-        # Mustafa: Button Konfiguration
-        # Liste der Buttons: (Text, Bildname, Farbe, Zeile, Spalte)
+        # Mustafa: Button Konfiguration mit DEINEN ORIGINALFARBEN
         buttons_config = [
-            ("AUSLEIHE", "icon_ausleihe.png", "#8DBF42", 0, 0),
-            ("RÜCKGABE", "icon_rueckgabe.png", "#E57368", 0, 1),
-            ("BUCHVERWALTUNG", "icon_buch.png", "#5CB1D6", 1, 0),
-            ("SCHÜLERVERWALTUNG", "icon_user.png", "#F1BD4D", 1, 1),
+            ("AUSLEIHE", "icon_ausleihe.png", "#8DBF42", 0, 0, "btn_ausleihe"),
+            ("RÜCKGABE", "icon_rueckgabe.png", "#E57368", 0, 1, "btn_rueckgabe"),
+            ("BUCHVERWALTUNG", "icon_buch.png", "#5CB1D6", 1, 0, "btn_bestand"),
+            ("SCHÜLERVERWALTUNG", "icon_user.png", "#F1BD4D", 1, 1, "btn_schueler"),
         ]
 
-        # Daniel: Erstellung der Buttons im Grid
-        for text, img_name, color, row, col in buttons_config:
-            # Vollen Pfad zum Bild holen
+        for text, img_name, color, row, col, attr_name in buttons_config:
             full_img_path = self.get_image_path(img_name)
-
-            # Button erstellen (nur Visualisierung, keine Logik/Connect)
             btn = self.create_centered_button(text, full_img_path, color)
 
+            # WICHTIG: Zuweisung für MainWindow (AttributeError Fix)
+            setattr(self, attr_name, btn)
+
             grid.addWidget(btn, row, col)
-
-        # Mustafa: Variable speichern für das QStackedWidget im MainWindow
-            if text == "SCHÜLERVERWALTUNG":
-                self.btn_schueler = btn
-
-        # Jaclyn: Rückgabe Button connecten
-            if text == "RÜCKGABE":
-                self.btn_rueckgabe = btn
 
         main_layout.addLayout(grid)
         main_layout.setContentsMargins(50, 30, 50, 50)
         self.setLayout(main_layout)
 
     def get_image_path(self, filename):
-        """
-        Hilfsfunktion: Findet den Pfad zum 'pic' Ordner, egal von wo man startet.
-        Geht davon aus, dass die Ordnerstruktur so ist:
-        /Projekt/src/CentralWidget.py
-        /Projekt/pic/bild.png
-        """
-        base_dir = os.path.dirname(__file__)  # Ordner dieser Datei (src)
+        base_dir = os.path.dirname(__file__)
         return os.path.join(base_dir, "..", "pic", filename)
 
     def create_centered_button(self, text, icon_path, color):
-        """
-        Erstellt das Design für einen Button mit Icon oben und Text unten.
-        """
         btn = QPushButton()
         btn.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
         btn.setMinimumSize(250, 180)
         btn.setCursor(Qt.CursorShape.PointingHandCursor)
 
-        # Internes Layout
         btn_layout = QVBoxLayout(btn)
         btn_layout.setContentsMargins(10, 50, 10, 20)
         btn_layout.setSpacing(15)
 
-        # Icon
         icon_label = QLabel()
         pixmap = QPixmap(icon_path)
         if not pixmap.isNull():
@@ -135,15 +105,12 @@ class CentralWidget(QWidget):
         icon_label.setStyleSheet("background-color: transparent; border: none;")
         btn_layout.addWidget(icon_label)
 
-        # Text
         text_label = QLabel(text)
         text_label.setFont(QFont("Open Sans", 16, QFont.Weight.Bold))
         text_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # Text explizit weiß setzen
         text_label.setStyleSheet("color: white; background-color: transparent; border: none;")
         btn_layout.addWidget(text_label)
 
-        # Button Styling
         btn.setStyleSheet(f"""
             QPushButton {{
                 background-color: {color};
@@ -157,5 +124,4 @@ class CentralWidget(QWidget):
                 background-color: #444444;
             }}
         """)
-
         return btn
