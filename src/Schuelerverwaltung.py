@@ -109,7 +109,7 @@ class StudentDialog(QDialog):
 
         # Styling der Dialog-Aktionsbuttons
         self.btn_cancel.setStyleSheet("""
-            QPushButton { background-color: #E0E0E0; color: #333333; padding: 7px 17_px; border: 3px solid #E0E0E0; border-radius: 4px; font-weight: bold; }
+            QPushButton { background-color: #E0E0E0; color: #333333; padding: 7px 17px; border: 3px solid #E0E0E0; border-radius: 4px; font-weight: bold; }
             QPushButton:hover { border: 3px solid #333333; }
             QPushButton:pressed { background-color: #444444; border: 3px solid #444444; color: white; }
         """)
@@ -130,14 +130,14 @@ class StudentDialog(QDialog):
     # Validierung: Prüft ob alle Felder korrekt ausgefüllt sind
     def validate_and_save(self):
         v, n, k = self.input_vorname.text().strip(), self.input_nachname.text().strip(), self.combo_klasse.currentText()
-        self.input_vorname.setStyleSheet("");
-        self.input_nachname.setStyleSheet("");
+        self.input_vorname.setStyleSheet("")
+        self.input_nachname.setStyleSheet("")
         self.combo_klasse.setStyleSheet("")
 
         if not v or not n or k == "Bitte wählen...":
-            if not v: self.input_vorname.setStyleSheet("border: 2px solid #D32F2F;")
-            if not n: self.input_nachname.setStyleSheet("border: 2px solid #D32F2F;")
-            if k == "Bitte wählen...": self.combo_klasse.setStyleSheet("border: 2px solid #D32F2F;")
+            if not v: self.input_vorname.setStyleSheet("border: 2px solid #D32F2F")
+            if not n: self.input_nachname.setStyleSheet("border: 2px solid #D32F2F")
+            if k == "Bitte wählen...": self.combo_klasse.setStyleSheet("border: 2px solid #D32F2F")
             self.error_label.show()
         else:
             self.accept()
@@ -156,8 +156,8 @@ class SchuelerverwaltungWidget(QWidget):
 
         # Header: Schullogo und Projektname
         header_layout = QHBoxLayout()
-        dummy_left = QWidget();
-        dummy_left.setFixedWidth(200);
+        dummy_left = QWidget()
+        dummy_left.setFixedWidth(200)
         header_layout.addWidget(dummy_left)
 
         title_label = QLabel("BooktrackQR")
@@ -172,7 +172,7 @@ class SchuelerverwaltungWidget(QWidget):
         if not pixmap.isNull():
             logo_label.setPixmap(
                 pixmap.scaled(200, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-        logo_label.setFixedWidth(200);
+        logo_label.setFixedWidth(200)
         logo_label.setAlignment(Qt.AlignmentFlag.AlignRight)
         header_layout.addWidget(logo_label)
 
@@ -241,21 +241,22 @@ class SchuelerverwaltungWidget(QWidget):
 
         # Tabellenspalten-Konfiguration
         header = self.table.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed);
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed)
         self.table.setColumnWidth(0, 100)
         header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed);
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Fixed)
         self.table.setColumnWidth(3, 120)
-        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed);
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed)
         self.table.setColumnWidth(4, 150)
 
         main_layout.addWidget(self.table)
 
         # Ahmet: Initialisierung der Dummy-Daten für die Entwicklung
         self.dummy_students = [("101", "Müller", "Max", "10A"), ("102", "Schmidt", "Lisa", "10A")]
-        for i in range(103, 130): self.dummy_students.append(
-            (str(i), f"Mustermann{i}", f"Test{i}", "10A" if i % 2 == 0 else "11B"))
+        for i in range(103, 130):
+            self.dummy_students.append(
+                (str(i), f"Mustermann{i}", f"Test{i}", "10A" if i % 2 == 0 else "11B"))
 
         # Daten laden und Signale verknüpfen
         self.load_table_data(self.dummy_students)
@@ -286,7 +287,8 @@ class SchuelerverwaltungWidget(QWidget):
             for col in range(4):
                 item = QTableWidgetItem(student[col])
                 item.setFlags(item.flags() ^ Qt.ItemFlag.ItemIsEditable)
-                if col in [0, 3]: item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                if col in [0, 3]:
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table.setItem(row, col, item)
 
             # Hintergrundfarbe für Aktions-Widget anpassen (wegen AlternatingRowColors)
@@ -294,27 +296,27 @@ class SchuelerverwaltungWidget(QWidget):
 
             # Container für Edit- und Delete-Buttons in der Tabelle
             action_widget = QWidget()
-            action_widget.setStyleSheet(f"background-color: {bg_color};")
-            action_layout = QHBoxLayout(action_widget);
-            action_layout.setContentsMargins(5, 0, 5, 0);
-            action_layout.setSpacing(15);
+            action_widget.setStyleSheet(f"background-color: {bg_color}")
+            action_layout = QHBoxLayout(action_widget)
+            action_layout.setContentsMargins(5, 0, 5, 0)
+            action_layout.setSpacing(15)
             action_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             # Bearbeiten Button
-            btn_edit = QPushButton("✏️");
+            btn_edit = QPushButton("✏️")
             btn_edit.setFixedSize(45, 45)
             btn_edit.setStyleSheet(
                 "QPushButton { background: transparent; border: none; font-size: 20px; } QPushButton:hover { background-color: #E0E0E0; border-radius: 8px; }")
             btn_edit.clicked.connect(lambda ch, sid=student[0]: self.edit_student(sid))
 
             # Löschen Button
-            btn_delete = QPushButton("🗑️");
+            btn_delete = QPushButton("🗑️")
             btn_delete.setFixedSize(45, 45)
             btn_delete.setStyleSheet(
                 "QPushButton { background: transparent; border: none; font-size: 20px; } QPushButton:hover { background-color: #FFCDD2; border-radius: 8px; }")
             btn_delete.clicked.connect(lambda ch, sid=student[0]: self.delete_student(sid))
 
-            action_layout.addWidget(btn_edit);
+            action_layout.addWidget(btn_edit)
             action_layout.addWidget(btn_delete)
             self.table.setCellWidget(row, 4, action_widget)
 
@@ -334,7 +336,7 @@ class SchuelerverwaltungWidget(QWidget):
                 d = StudentDialog(self, student_data=s)
                 if d.exec() == QDialog.DialogCode.Accepted:
                     self.dummy_students[i] = (sid, d.input_nachname.text(), d.input_vorname.text(),
-                                              d.combo_klasse.currentText());
+                                              d.combo_klasse.currentText())
                     self.filter_table()
                 break
 
