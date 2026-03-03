@@ -11,7 +11,7 @@ if __name__ == '__main__':
     def open_main():
         main_window.show()
 
-    gate = LoadingGate(on_success=open_main)  # liest .env automatisch neben Main.py
+    gate = LoadingGate(on_success=open_main)
     gate.show()
 
     sys.exit(app.exec())
