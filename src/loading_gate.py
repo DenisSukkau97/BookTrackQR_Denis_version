@@ -102,7 +102,6 @@ class LoadingGate(QWidget):
         base_dir = os.path.dirname(os.path.abspath(__file__))
         self.env_path = os.path.join(base_dir, env_filename)
 
-
         self.setWindowTitle("Bücher App")
         self.setFixedSize(520, 320)
         self.setWindowFlags(self.windowFlags() | Qt.WindowType.MSWindowsFixedSizeDialogHint)
