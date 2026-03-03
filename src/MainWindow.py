@@ -6,13 +6,33 @@
 # ------------------------------------------------------------------------------
 
 from PyQt6.QtWidgets import QMainWindow, QStackedWidget, QWidget, QVBoxLayout, QLabel, QPushButton
-from PyQt6.QtCore import QTimer, Qt
+from PyQt6.QtCore import QTimer, Qt, pyqtSignal, QObject, QThread
 
 from CentralWidget import CentralWidget
 from Schuelerverwaltung import SchuelerverwaltungWidget
 from Rueckgabe import RueckgabeWidget
 from Buchverwaltung import BuchverwaltungWidget  # Harun Kayaci
 from Ausleihe import AusleiheWidget  # Batuhan Aktürk & Daniel Popp
+
+
+class _HeartbeatWorker(QObject):
+    finished = pyqtSignal()
+    result = pyqtSignal(bool, str, str)  # ist_online, user_msg, tech_msg
+
+    def __init__(self, db_config):
+        super().__init__()
+        self._db_config = db_config
+
+    def run(self):
+        try:
+            from loading_gate import check_db_connection
+            ist_online, user_msg, tech_msg = check_db_connection(self._db_config)
+        except Exception as e:
+            ist_online = False
+            user_msg = "Unbekannter Fehler beim Verbindungscheck."
+            tech_msg = repr(e)
+        self.result.emit(ist_online, user_msg, tech_msg)
+        self.finished.emit()
 
 
 class MainWindow(QMainWindow):
@@ -61,9 +81,14 @@ class MainWindow(QMainWindow):
         self.bestand_widget.btn_back.clicked.connect(self.zeige_hauptmenue)  # Zurück-Button Bestand Harun Kayaci
         self.ausleihe_widget.btn_back.clicked.connect(self.zeige_hauptmenue)  # Batuhan Aktürk & Daniel Popp
 
+        # René Bezold, Georg Zinn: Thread/Worker-Status für Heartbeat
+        self._hb_thread = None
+        self._hb_worker = None
+        self._hb_running = False
+
         #René Bezold, Georg Zinn Start des Watchdogs am Ende der
         self.db_watchdog = QTimer(self)
-        self.db_watchdog.setInterval(5000)
+        self.db_watchdog.setInterval(10000)
         self.db_watchdog.timeout.connect(self.check_heartbeat)
         self.db_watchdog.start()
         # -------------------------------------------------
@@ -93,16 +118,39 @@ class MainWindow(QMainWindow):
 
     # René Bezold, Georg Zinn
     def check_heartbeat(self):
-        """Prüft im Hintergrund, ob der Pi noch da ist."""
-        from loading_gate import check_db_connection
-        ist_online, user_msg, tech_msg = check_db_connection(self.db_config)
+        """Prüft im Hintergrund, ob der Pi noch da ist (nicht-blockierend für die GUI)."""
+        if self._hb_running:
+            return  # verhindert parallele Checks, falls ein Check hängt/noch läuft
+
+        self._hb_running = True
+
+        self._hb_thread = QThread(self)
+        self._hb_worker = _HeartbeatWorker(self.db_config)
+        self._hb_worker.moveToThread(self._hb_thread)
+
+        self._hb_thread.started.connect(self._hb_worker.run)
+        self._hb_worker.result.connect(self._on_heartbeat_result)
+        self._hb_worker.finished.connect(self._hb_thread.quit)
+        self._hb_worker.finished.connect(self._hb_worker.deleteLater)
+        self._hb_thread.finished.connect(self._hb_thread.deleteLater)
+        self._hb_thread.finished.connect(self._on_heartbeat_finished)
+
+        self._hb_thread.start()
+
+    def _on_heartbeat_result(self, ist_online: bool, user_msg: str, tech_msg: str):
         if not ist_online:
             self.show_db_down_gui(user_msg)
+
+    def _on_heartbeat_finished(self):
+        self._hb_running = False
+        self._hb_thread = None
+        self._hb_worker = None
 
     # René Bezold, Georg Zinn
     def show_db_down_gui(self, fehler):
         """Erzeugt ein Fullscreen-Overlay, wenn der Server weg ist."""
-        if self.error_overlay: return
+        if self.error_overlay: 
+            return
         self.db_watchdog.stop()
         self.error_overlay = QWidget(self)
         self.error_overlay.setGeometry(0, 0, self.width(), self.height())
