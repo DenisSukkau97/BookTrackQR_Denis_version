@@ -23,6 +23,7 @@ class _HeartbeatWorker(QObject):
         super().__init__()
         self._db_config = db_config
 
+    # René Bezold, Georg Zinn: Worker-Thread für Heartbeat-Check (Verbindungsprüfung)
     def run(self):
         try:
             from loading_gate import check_db_connection
