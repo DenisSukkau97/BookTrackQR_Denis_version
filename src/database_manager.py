@@ -3,7 +3,7 @@
 # Modul: database_manager.py
 # Autoren: René Bezold, Denis Sukkau, Georg Zinn
 # Zweck: Zentrale Schnittstelle zur MariaDB auf dem Raspberry Pi.
-#        Übernimmt alle CRUD-Operationen (Create, Read, Update, Delete)
+#        CRUD-Operationen (Create, Read, Update, Delete)
 #        für die Buchverwaltung.
 # ------------------------------------------------------------------------------
 
