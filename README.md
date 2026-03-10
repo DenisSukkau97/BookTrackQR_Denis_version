@@ -1,7 +1,3 @@
-10.02.26 // Denis ; Luis 
-
-READme 
-
 **Schulbibliothek – Ausleihe mit iPad, Raspberry Pi & QR-Codes**
 
 **Zweck des Systems**
