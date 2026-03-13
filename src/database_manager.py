@@ -122,6 +122,14 @@ class DatabaseManager:
         finally:
             conn.close()
 
+    def delete_book(self, isbn):
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cursor:
+                cursor.execute("DELETE FROM BuchTitel WHERE isbn = %s", (isbn,))
+        finally:
+            conn.close()
+
     def update_stock(self, isbn, delta_or_new):
         conn = self._get_connection()
         try:
