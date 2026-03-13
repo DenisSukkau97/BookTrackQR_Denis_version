@@ -102,17 +102,27 @@ class DatabaseManager:
         conn = self._get_connection()
         try:
             with conn.cursor() as cursor:
+                # 1. Titel anlegen
                 cursor.execute("SELECT IFNULL(MAX(titel_id), 0) + 1 FROM BuchTitel")
                 t_id = cursor.fetchone()[0]
                 sql_titel = "INSERT INTO BuchTitel (titel_id, titel, verlag, auflage, isbn) VALUES (%s, %s, %s, %s, %s)"
                 cursor.execute(sql_titel, (t_id, titel, verlag, auflage, isbn))
 
+                # 2. Exemplare anlegen
                 for i in range(1, int(bestand) + 1):
                     cursor.execute("SELECT IFNULL(MAX(exemplar_id), 0) + 1 FROM BuchExemplar")
                     e_id = cursor.fetchone()[0]
                     qr = f"QR-{isbn}-{i}"
-                    sql_ex = "INSERT INTO BuchExemplar (exemplar_id, titel_id, exemplar_nr, qr_code) VALUES (%s, %s, %s, %s)"
-                    cursor.execute(sql_ex, (e_id, t_id, i, qr))
+
+                    # --- KORREKTUR HIER: isbn statt titel_id ---
+                    sql_ex = "INSERT INTO BuchExemplar (exemplar_id, isbn, exemplar_nr, qr_code) VALUES (%s, %s, %s, %s)"
+                    cursor.execute(sql_ex, (e_id, isbn, i, qr))
+                    # --------------------------------------------
+
+            conn.commit()  # WICHTIG: Ohne commit wird nichts dauerhaft gespeichert!
+        except Exception as e:
+            conn.rollback()  # Falls was schiefgeht, alles rückgängig machen
+            raise e  # Fehler weiterreichen an die GUI
         finally:
             conn.close()
 
