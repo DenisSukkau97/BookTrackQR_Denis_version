@@ -531,8 +531,8 @@ class BuchverwaltungWidget(QWidget):
         confirm = DeleteConfirmDialog(self)
         if confirm.exec() == QDialog.DialogCode.Accepted:
             try:
-                # ÄNDERUNG: Nutzt jetzt den Manager für die echte Datenbank
                 self.db_manager.delete_book(isbn)
+
                 self.filter_table()
             except Exception as e:
                 self.data_stack.show_error(f"Löschfehler: {str(e)}")
