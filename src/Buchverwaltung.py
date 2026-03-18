@@ -354,9 +354,6 @@ class BuchverwaltungWidget(QWidget):
         self.data_stack = LoadingTableStack(self.table, retry_callback=self.filter_table)
         main_layout.addWidget(self.data_stack)
 
-        # Tabelle initial befüllen
-        self.filter_table()
-
         # Signale: bei Änderungen sofort aktualisieren (Suche + Sortierung)
         self.search_input.textChanged.connect(self.filter_table)
         self.sort_combo.currentTextChanged.connect(self.filter_table)
@@ -500,13 +497,11 @@ class BuchverwaltungWidget(QWidget):
                 self.data_stack.show_error(f"Fehler beim Hinzufügen: {str(e)}")
 
     # --------------------------------------------------------------------------
-    # lesen der aktuellen Werte direkt aus der UI-Tabelle
+    # ändern der aktuellen Werte direkt aus der UI-Tabelle
     # --------------------------------------------------------------------------
     def edit_book(self, isbn):
-        # Wir suchen die Daten in der UI-Tabelle, da dummy_books gelöscht wurde
         for row in range(self.table.rowCount()):
             if self.table.item(row, 0).text() == isbn:
-                # Aktuelle Daten aus den Tabellenzellen auslesen
                 book_data = (
                     isbn,
                     self.table.item(row, 1).text(),
@@ -518,11 +513,16 @@ class BuchverwaltungWidget(QWidget):
                 d = BookDialog(self, book_data=book_data)
                 if d.exec() == QDialog.DialogCode.Accepted:
                     try:
-                        # Update an die Datenbank senden (Bestand)
-                        self.db_manager.update_stock(isbn, int(d.input_stock.text().strip()))
+                        t = d.input_title.text().strip()
+                        p = d.input_publisher.text().strip()
+                        e = d.input_edition.text().strip()
+                        s = int(d.input_stock.text().strip())
+
+                        self.db_manager.update_book(isbn, t, p, e, s)
+
                         self.filter_table()
                     except Exception as e:
-                        self.data_stack.show_error(f"Fehler: {str(e)}")
+                        self.data_stack.show_error(f"Fehler beim Speichern: {str(e)}")
                 break
 
     # --------------------------------------------------------------------------
@@ -584,3 +584,9 @@ class BuchverwaltungWidget(QWidget):
         except Exception as e:
             # Fehlerfall (z.B. Raspberry Pi offline)
             self.data_stack.show_error(f"Datenbankfehler: {str(e)}")
+
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # Ruft deine bestehende Lade-Logik auf
+        self.filter_table()

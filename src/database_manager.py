@@ -41,6 +41,7 @@ class DatabaseManager:
     def get_or_create_school_year(self, jahr_text):
         """Sucht das Schuljahr oder legt es automatisch an."""
         conn = self._get_connection()
+
         try:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT schuljahr_id FROM Schuljahr WHERE jahr = %s", (jahr_text,))
@@ -155,6 +156,28 @@ class DatabaseManager:
                     cursor.execute(
                         "DELETE FROM BuchExemplar WHERE isbn = %s ORDER BY exemplar_id DESC LIMIT %s",
                         (isbn, diff))
+
+            conn.commit()
+
+        except Exception as e:
+            if conn: conn.rollback()
+            raise e
+        finally:
+            conn.close()
+
+    def update_book(self, isbn, titel, verlag, auflage, bestand):
+        """Aktualisiert die Text-Infos in BuchTitel UND passt den Bestand an."""
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cursor:
+                sql = """
+                    UPDATE BuchTitel 
+                    SET titel = %s, verlag = %s, auflage = %s 
+                    WHERE isbn = %s
+                """
+                cursor.execute(sql, (titel, verlag, auflage, isbn))
+
+                self.update_stock(isbn, bestand)
 
             conn.commit()
         except Exception as e:
