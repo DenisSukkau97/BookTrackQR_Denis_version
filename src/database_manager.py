@@ -39,6 +39,7 @@ class DatabaseManager:
     def get_or_create_school_year(self, jahr_text):
         """Sucht das Schuljahr oder legt es automatisch an."""
         conn = self._get_connection()
+
         try:
             with conn.cursor() as cursor:
                 cursor.execute("SELECT schuljahr_id FROM Schuljahr WHERE jahr = %s", (jahr_text,))
@@ -155,6 +156,7 @@ class DatabaseManager:
                         (isbn, diff))
 
             conn.commit()
+
         except Exception as e:
             if conn: conn.rollback()
             raise e

@@ -353,9 +353,6 @@ class BuchverwaltungWidget(QWidget):
         self.data_stack = LoadingTableStack(self.table, retry_callback=self.filter_table)
         main_layout.addWidget(self.data_stack)
 
-        # Tabelle initial befüllen
-        self.filter_table()
-
         # Signale: bei Änderungen sofort aktualisieren (Suche + Sortierung)
         self.search_input.textChanged.connect(self.filter_table)
         self.sort_combo.currentTextChanged.connect(self.filter_table)
@@ -583,3 +580,9 @@ class BuchverwaltungWidget(QWidget):
         except Exception as e:
             # Fehlerfall (z.B. Raspberry Pi offline)
             self.data_stack.show_error(f"Datenbankfehler: {str(e)}")
+
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        # Ruft deine bestehende Lade-Logik auf
+        self.filter_table()
