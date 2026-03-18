@@ -163,6 +163,27 @@ class DatabaseManager:
         finally:
             conn.close()
 
+    def update_book(self, isbn, titel, verlag, auflage, bestand):
+        """Aktualisiert die Text-Infos in BuchTitel UND passt den Bestand an."""
+        conn = self._get_connection()
+        try:
+            with conn.cursor() as cursor:
+                sql = """
+                    UPDATE BuchTitel 
+                    SET titel = %s, verlag = %s, auflage = %s 
+                    WHERE isbn = %s
+                """
+                cursor.execute(sql, (titel, verlag, auflage, isbn))
+
+                self.update_stock(isbn, bestand)
+
+            conn.commit()
+        except Exception as e:
+            if conn: conn.rollback()
+            raise e
+        finally:
+            conn.close()
+
     # --- SCHÜLERVERWALTUNG ---
 
     # MUSTAFA DEMIRAL (Sprint 5): Holt alle Schüler, berechnet formatierte ID per Modulo (schneidet Klassen-Block ab) und filtert inaktive aus.
