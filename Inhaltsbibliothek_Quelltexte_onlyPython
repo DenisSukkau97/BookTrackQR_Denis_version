@@ -1,0 +1,35 @@
+10.02.26 //  Denis; Luis 
+
+Inhaltsbibliothek aller Quelltexte
+
+
+Hier sind nur die python Dateien der App enhalten.
+
+
+# Diese Seite muss regelmäßig aktuell gehalten werden. 
+
+
+• main.py
+
+• MainWindow.py
+
+• CentralWidget.py
+
+• QR_Generator                     # Erstellt einen QR-Code 
+
+• QR_Generator_DuplikatKiller      # überprüft mit einer If-Abfrage ob doppelte QR-Codes erstellt wurden. 
+
+•
+
+•
+
+•
+
+•
+
+•
+
+
+
+
+
